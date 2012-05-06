@@ -1,0 +1,339 @@
+package seminar;
+
+import java.awt.Color;
+import java.awt.image.*;
+import javax.imageio.*;
+import java.io.*;
+import java.util.Random;
+ import java.awt.*;
+
+/*========================================================================
+
+Copyright (c) 2007 Robert Hansen, www.r-hansen.com
+
+This file is part of One-Time Image.
+
+One-Time Image is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+One-Time Image is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with One-Time Image; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+========================================================================*/
+public class inout {
+//no class constructors needed
+    static int sharecnt = 0;
+
+    public static void main(String args[]) throws IOException {
+        BufferedImage img = loadImage("C:/Users/S/Documents/NetBeansProjects/seminar/apple.jpg");
+        //img = alter.monochrome(img);
+        saveImage(img, "check", 1);
+        int[][] pixels = encrypt(img);
+        System.out.println("Hello");
+
+        makeShares(pixels, 6);
+        //decrypt(Shares, sharecnt, sharecnt, sharecnt);
+        //  overlay.superimpose();
+        //          boolean flag=saveImage(img, "apple.jpg", 1);
+    }
+
+    static BufferedImage loadImage(String filename) {
+        BufferedImage in;
+        try {
+            File filein = new File(filename);
+            in = ImageIO.read(filein);
+        } catch (Exception ex) {
+            in = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        }
+        return in;
+    }
+
+    static boolean validateImage(BufferedImage pic) {
+        boolean valid;
+        int x = pic.getWidth();
+        if (x > 0) {
+            x = pic.getHeight();
+            if (x > 0) {
+                valid = true;
+            } else {
+                valid = false;
+            }
+        } else {
+            valid = false;
+        }
+        return valid;
+    }
+
+    static boolean saveImage(BufferedImage pic, String filename, int format) {
+        boolean valid = false;
+        sharecnt++;
+        String type = "png";
+        if (format == 1) {
+            type = "jpg";
+        }
+        filename.trim();
+        filename = filename + sharecnt + "." + type;
+        try {
+            File fileout = new File(filename);
+            ImageIO.write(pic, type, fileout);
+            valid = true;
+        } catch (Exception ex) {
+            valid = false;
+        }
+        return valid;
+
+    }
+
+    public static int[][] encrypt(BufferedImage pic) {
+        Raster image_raster = pic.getData();
+        int w = pic.getWidth();
+        int h = pic.getHeight();
+
+        int[][] original; // where we'll put the image
+
+        //get pixel by pixel
+        int[] pixel = new int[3];
+        int[] buffer = new int[3];
+
+        // declaring the size of arrays
+        original = new int[image_raster.getWidth()][image_raster.getHeight()];
+
+
+        //get the image in the array
+        for (int i = 0; i < image_raster.getWidth(); i++) {
+            for (int j = 0; j < image_raster.getHeight(); j++) {
+                // System.out.println(j);
+                pixel = image_raster.getPixel(i, j, buffer);
+                original[i][j] = pixel[0];
+
+                if (original[i][j] == 0) {
+                    original[i][j] = 0;
+                } else {
+                    original[i][j] = 1;
+                }
+            //    System.out.print(" " + original[i][j]);
+            }
+           // System.out.println("\n");
+        }
+        //  System.out.println(original.length); //number of rows
+        // System.out.println(original[0].length); // number of columns
+        //  CheckPixelValue(original);
+
+        return original;
+
+
+    }
+
+    public static void makeShares(int[][] pixels, int Nshares) throws IOException {
+        int[][] cZero = new int[Nshares][Nshares];
+        int[][] cOne = new int[Nshares][Nshares];
+        int width = pixels[0].length;
+        int height = pixels.length;
+        int[][][] Shares = new int[Nshares][width][height];
+        for (int i = 0; i < Nshares; i++) {
+            cZero[0][i] = 1;
+        
+        }
+
+        for (int i = 1; i < Nshares; i++) {
+            for (int j = 0; j < Nshares; j++) {
+                cZero[i][j] = 0;
+
+            }
+        
+        }
+      //  printArray(cZero);
+        for (int i = 0; i < Nshares; i++) {
+            for (int j = 0; j < Nshares; j++) {
+                if (i == j) {
+                    cOne[i][i] = 1;
+                } else {
+                    cOne[i][j] = 0;
+                }
+            }
+        }
+        //printArray(cOne);
+        int m = 1;
+        Random rd = new Random();
+        int rand;
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+          m=0;
+                rand = rd.nextInt(Nshares);
+                while (m < Nshares) {
+                    if (pixels[i][j] == 0) {
+                        Shares[m][i][j] = cZero[rand][m];
+                    } else {
+                        Shares[m][i][j] = cOne[rand][m];
+                    }
+                    m++;
+                }
+
+            }
+        }
+     ////   System.out.println("Hello1");
+printArray(Shares[1]);
+        int[][] shareval = new int[Nshares][Nshares];
+        for (int k = 0; k < Nshares; k++) {
+            shareval = convert(Shares, width, height, k);
+            System.out.println("Print");
+          //  printArray(shareval);
+           getImageFromArray(shareval, width, height);
+
+            /*int[] oneD = new int[shareval.length*shareval[0].length];
+            int z = 0;
+
+            for (int k = 0; k < shareval.length; k++) {
+                for (int j = 0; j < shareval[0].length; j++) {
+                    oneD[z] = shareval[k][j];
+                    z++;
+                }
+            }*/
+
+//int flag=            CheckPixelValue(shareval);
+            //getImageFromArray(oneD, width, height);
+        }
+        decrypt(width, height, 3,Shares[0],Shares[1],Shares[2]);
+    }
+    public static void getImageFromArray(int[][] pixels,int width,int height)
+    {
+        
+        sharecnt++;
+        Picture pic = new Picture(width, height);
+        int k=0;
+        for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+        if(pixels[i][j]==0){
+            k++;
+            pic.set(i, j, Color.WHITE);}
+        else pic.set(i,j,Color.BLACK);
+
+    }
+
+    }
+System.out.println(k);
+pic.save("share"+sharecnt+".jpg");
+        //pic.show();
+    }
+public static int[][] convert(int[][][] Shares, int width,int height,int m)
+{
+    int[][] share=new int[width][height];
+
+        for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+     share[i][j]=Shares[m][i][j];
+
+}
+}
+    return share;
+}
+public static void printArray(int[][] a)
+{
+        for (int i = 0; i < a.length; i++) {
+    for (int j = 0; j < a[0].length; j++) {
+  System.out.print(" "+a[i][j]);
+    }
+    System.out.println("\n");
+}
+}
+public static void decrypt(int width, int height, int Nshares, int[][]...shares)
+{
+    int m=0;
+    int[][] pic=new int[width][height];
+           for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+          m=0;
+               // rand = rd.nextInt(Nshares);
+                while (m < Nshares) {
+                    for(int[][] share:shares)
+                    if (share[i][j] == 1) {
+                        pic[i][j]=1;break; 
+                    } 
+                    m++;
+                }
+
+            }
+        }
+    getImageFromArray(pic, width, height);
+}}   //pic.save("share");}
+  /*   public static int CheckPixelValue(int[][] pixels) throws IOException {
+    //Checking of we get back the same image.
+    int height = pixels.length;
+    int width = pixels[0].length;
+
+    int[] oneD = new int[10000];
+    int k = 0;
+    for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+    oneD[k] = pixels[i][j];
+    k++;
+    }
+    }int c;
+    //System.out.println("Check 1");
+    BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+    for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+    // fix this based on your rastering order
+    //final int c = oneD[x * width + y];
+    if(pixels[x][y]==0)
+    {c=0;}         else c=255;       //     System.out.println("Check 2");
+    // all of the components set to the same will be gray
+    bi.setRGB(x, y, new Color(c, c, c).getRGB());
+    bi.setData(null);
+
+    }
+    }
+    saveImage(bi, "share", 1);
+    return 1;
+    //  System.out.println("Check 3");
+    //File out = new File("share2.jpg");
+    //ImageIO.write(bi, "jpg", out);
+    }
+*/
+  /*  public static void getImageFromArray(int[][] pixels, int width, int height) {
+       /**
+   * Background is black.
+   
+  // int black = 0;
+  // System.out.println("Black : "+ black);
+  /**
+   * Foreground is white.
+   
+
+   //System.out.println(black);
+   BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+   for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+    if(pixels[x][y]==0){
+
+        image.setRGB(x, y, 0);}
+    else image.setRGB(x, y, 255);
+    }}
+     /*  BufferedImage image =
+        new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    WritableRaster raster = (WritableRaster) image.getData();
+    raster.setPixels(0, 0, width, height, pixels);
+    image.setData(raster);*/
+    //saveImage(image, "share", 1);
+ /*   public static void getImageFromArray(int[] pixels, int width, int height) {
+        System.out.print("Entered");
+    MemoryImageSource mis = new MemoryImageSource(width, height, pixels, 0, width);
+    Toolkit tk = Toolkit.getDefaultToolkit();
+    Image image=tk.createImage(mis);
+    
+    BufferedImageBuilder obj=new BufferedImageBuilder();
+    System.out.print("Entered2");
+    BufferedImage img=obj.bufferImage(image);
+System.out.print("Entered3");
+    saveImage(img, "share", 1);
+}*/
+    

@@ -1,0 +1,4 @@
+Visual cryptography is a powerful technique which combines the notions of perfect ciphers and secret sharing in cryptography with that of raster graphics. A binary image can be divided into shares which can be stacked together to approximately recover the original image. The physical transparency stacking type of decryption allows for the recovery of the traditional visual cryptography quality image. In this paper, quantification and analysis is done based on various performance parameters of visual cryptographic algorithms. The algorithms considered are the traditional K-N sharing for colored image and Progressive Visual Cryptography for monochrome images. The performance factors considered are the running time of the algorithm for images of different size and shares, Peak Signal to Noise Ratio for different image size. The analysis is done by plotting graphs in Python.
+
+
+

@@ -14,7 +14,7 @@ public class inout {
 
     public static void main(String args[]) throws IOException {
         long startTime = System.currentTimeMillis();
-        BufferedImage img = loadImage("C:/Users/S/Documents/NetBeansProjects/seminar/images/200.jpg");
+        BufferedImage img = loadImage("/media/Seagate Expansion Drive/Projects/VC/VisualCrytographyCODES/ProgressiveVC/monochrome_image0.jpg");
         System.out.println(img.getColorModel()+"color model :");
         int Nshares;
         int w = img.getWidth();
